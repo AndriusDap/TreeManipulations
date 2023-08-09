@@ -5,7 +5,9 @@ import zio.ZIO
 
 
 sealed trait ParserError extends Throwable
-case class CannotParse(message: String) extends ParserError
+case class CannotParse(message: String) extends ParserError:
+  override def getMessage: String = s"Cannot parse $message as a number"
+
 
 object Parser:
   def wholeInput(acc: List[String] = Nil): ZIO[Any, Nothing, List[String]] =

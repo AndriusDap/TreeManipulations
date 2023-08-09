@@ -72,8 +72,11 @@ case class Graph(weights: Vector[Vector[Int]]):
 
 object Graph:
   sealed trait GraphError extends Throwable
-  case object InvalidGraph extends GraphError
-  case object EmptyGraph extends GraphError
+  case object InvalidGraph extends GraphError:
+    override def getMessage: String = "Graph is not triangle shaped"
+  case object EmptyGraph extends GraphError:
+    override def getMessage: String = "Cannot initialise an empty graph"
+
 
   //While this could be a ZIO monad we don't get much by wrapping it, so let's provide a simple either
   def apply(weights: Vector[Vector[Int]]): Either[GraphError, Graph] =
