@@ -10,7 +10,6 @@ case class Graph(weights: Vector[Vector[Int]]):
     val target = distances.filter(_._1._1 == lastRow).minBy(_._2)
     reconstructPath(target._1, previous).map(weight).reverse
 
-
   def reconstructPath(to: (Int, Int), previous: Map[(Int, Int), (Int, Int)]): List[(Int, Int)] =
     reconstructPath(to, previous, List(to))
 
