@@ -1,13 +1,10 @@
 package ad
 
-import scala.collection.immutable.{AbstractSet, SortedSet}
+import scala.annotation.tailrec
 
 case class Graph(weights: Vector[Vector[Int]]):
   def shortestPath  =
-    val allNodes = weights.zipWithIndex.flatMap {
-      case (nodes, x) => nodes.indices.map(y => (x, y))
-    }
-    val (distances, previous) = dijkstra(Map((0, 0) -> 0), Map.empty, allNodes.toSet)
+    val (distances, previous) = bfDijkstra(Map((0, 0) -> 0), Map.empty, (0, 0))
     val lastRow = weights.size - 1
 
     val target = distances.filter(_._1._1 == lastRow).minBy(_._2)
@@ -29,46 +26,34 @@ case class Graph(weights: Vector[Vector[Int]]):
 
 
   def weight(target: (Int, Int)): Int = weights(target._1)(target._2)
-  def dijkstra(
+
+  @tailrec
+  final def bfDijkstra(
     distances: Map[(Int, Int), Int],
     previous: Map[(Int, Int), (Int, Int)],
-    unsolved: Set[(Int, Int)]
+    current: (Int, Int)
   ): (Map[(Int, Int), Int], Map[(Int, Int), (Int, Int)]) =
-    given optionalIntOrdering: Ordering[Option[Int]] with {
-      override def compare(x: Option[Int], y: Option[Int]): Int =
-        (x, y) match
-          case (Some(x), Some(y)) => x.compare(y)
-          case (Some(_), None) => -1
-          case (None, Some(_)) => 1
-          case (None, None) => 0
-    }
 
-    if unsolved.isEmpty then
+    if weights.lift(current._1).flatMap(w => w.lift(current._2)).isEmpty then
       (distances, previous)
     else
-      // TODO: Verify that ordering works here
-      val next = unsolved.minBy(element => distances.get(element))
-      val updates: Seq[Option[((Int, Int), (Int, (Int, Int)))]] = for {
-        neighbour <- neighbours(next).filter(unsolved.contains)
-        updatedDistance = distances(next) + weight(neighbour)
+      val updates = for {
+        neighbour <- neighbours(current)
+        updatedDistance = distances(current) + weight(neighbour)
       } yield distances.get(neighbour) match
-        case None => Some(neighbour -> (updatedDistance, next))
-        case Some(d) if d > updatedDistance => Some(neighbour -> (updatedDistance, next))
+        case None => Some(neighbour -> (updatedDistance, current))
+        case Some(d) if d > updatedDistance => Some(neighbour -> (updatedDistance, current))
         case _ => None
 
+      val distanceUpdates = updates.flatten.map { case (node, (newDistance, _)) => node -> newDistance }.toMap
+      val previousUpdates = updates.flatten.map { case (node, (_, from)) => node -> from }.toMap
 
-      dijkstra(
-        updates.flatten.foldLeft(distances){
-          case (distances, (node, (newDistance, _))) =>
-            distances + (node -> newDistance)
-        },
-        updates.flatten.foldLeft(previous){
-          case (previous, (node, (_, from))) =>
-            previous + (node -> from)
-        },
-        unsolved - next
-      )
+      val nextNode = if weights(current._1).length == current._2 + 1 then
+        (current._1 + 1, 0)
+      else
+        (current._1, current._2 + 1)
 
+      bfDijkstra(distances ++ distanceUpdates, previous ++ previousUpdates, nextNode)
 
 object Graph:
   sealed trait GraphError extends Throwable

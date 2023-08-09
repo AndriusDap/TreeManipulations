@@ -8,10 +8,10 @@ object Main extends ZIOAppDefault :
     for {
       input <- readAllInput()
       graph <- Parser.parse(input)
-      _ <- zio.Console.printLine("Input received, crunching the path")
-      _ <- zio.Console.printLine(System.currentTimeMillis())
-      _ <- zio.Console.printLine(graph.shortestPath)
-      _ <- zio.Console.printLine(System.currentTimeMillis())
+      //start = System.currentTimeMillis()
+      shortestPath = graph.shortestPath
+      //_ <- zio.Console.printLine(System.currentTimeMillis() - start)
+      _ <- zio.Console.printLine(s"Minimal path is: ${shortestPath.mkString(" + ")} = ${shortestPath.sum}")
     } yield ()
 
 
