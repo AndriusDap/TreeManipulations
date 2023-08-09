@@ -1,7 +1,8 @@
 package ad
 
-import zio.test._
-import zio.test.Assertion._
+import ad.Graph.{EmptyGraph, InvalidGraph}
+import zio.test.*
+import zio.test.Assertion.*
 import zio.test.ZIOSpecDefault
 
 object ParserSpec extends ZIOSpecDefault {
@@ -9,13 +10,13 @@ object ParserSpec extends ZIOSpecDefault {
     def spec = suite("Parser spec")(
       test("Single value should return a simple node") {
         for {
-          result <- Parser.parse(List("5"))
-        } yield assertTrue(result == Node(5))
+          result <- Parser.parse(List("5")).either
+        } yield assertTrue(result == Graph(Vector(Vector(5))))
       },
       test("simple tree should be parsed") {
         for {
-          result <- Parser.parse(List("5", "1 2"))
-        } yield assertTrue(result == Node(5, Node(1), Node(2)))
+          result <- Parser.parse(List("5", "1 2")).either
+        } yield assertTrue(result == Graph(Vector(Vector(5), Vector(1, 2))))
       },
       test("Non integer should fail") {
         for {
@@ -25,22 +26,22 @@ object ParserSpec extends ZIOSpecDefault {
       test("Empty list should return some failure") {
         for {
           result <- Parser.parse(List.empty).either
-        } yield assertTrue(result == Left(EmptyTree))
+        } yield assertTrue(result == Left(EmptyGraph))
       },
       test("Invalid shape should be reported") {
         for {
           result <- Parser.parse(List("1 2 3")).either
-        } yield assertTrue(result == Left(InvalidTreeShape))
+        } yield assertTrue(result == Left(InvalidGraph))
       },
       test("Invalid shape should be reported") {
         for {
           result <- Parser.parse(List("1", "1 2 3")).either
-        } yield assertTrue(result == Left(InvalidTreeShape))
+        } yield assertTrue(result == Left(InvalidGraph))
       },
       test("Invalid shape should be reported") {
         for {
           result <- Parser.parse(List("1", "1 2", "1")).either
-        } yield assertTrue(result == Left(InvalidTreeShape))
+        } yield assertTrue(result == Left(InvalidGraph))
       }
 
     )

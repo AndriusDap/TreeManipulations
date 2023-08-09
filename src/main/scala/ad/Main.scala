@@ -7,7 +7,11 @@ object Main extends ZIOAppDefault :
   def run =
     for {
       input <- readAllInput()
-      _ <- zio.Console.printLine(input)
+      graph <- Parser.parse(input)
+      _ <- zio.Console.printLine("Input received, crunching the path")
+      _ <- zio.Console.printLine(System.currentTimeMillis())
+      _ <- zio.Console.printLine(graph.shortestPath)
+      _ <- zio.Console.printLine(System.currentTimeMillis())
     } yield ()
 
 
