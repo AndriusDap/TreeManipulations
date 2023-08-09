@@ -33,7 +33,8 @@ case class Graph(weights: Vector[Vector[Int]]):
    * In this implementation we are not tracking that, instead a we traverse the nodes one by one. This is a valid
    * only for this graph due to the fact that it follows the triangle shape. Removing the unvisited node queue leads
    * to increase in distance/previous map updates yet the gains of not tracking the node queue outweigh the increased
-   * updates
+   * updates.
+   * Using mutable maps for distances and previous could be a possible optimisation if larger datasets must be handled
    * */
   @tailrec
   final def computePaths(
